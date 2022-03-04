@@ -31,7 +31,7 @@ def as_uint8(img, int_range=0.99):
     
     if data_type == 'uint8':
         
-        raise ValueError('Input image is already uint8') 
+       print('Input image is already uint8') 
         
     else:
         
