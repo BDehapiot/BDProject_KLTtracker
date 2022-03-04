@@ -1,0 +1,14 @@
+name: KLTtracker
+
+channels:
+    - conda-forge
+    
+dependencies:
+    - python>=3.8
+    - pip
+    - numpy
+    - scipy
+    - scikit-image
+    - opencv
+    - matplotlib-base
+    - joblib
