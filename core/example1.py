@@ -17,9 +17,10 @@ from tools.dtype import as_uint8
 ROOT_PATH = '../data/'
 
 # RAW_NAME = 'Mito_72_s&tCrop.tif'
-# RAW_NAME = 'Mito_72_s&tCrop_mod.tif'
+RAW_NAME = 'Mito_72_s&tCrop_mod.tif'
 # RAW_NAME = 'Mito_74_DUP_s&tCrop.tif'
-RAW_NAME = 'C2-18-07-04_DC_67xYW(F1)_b7_KltReady.tif'
+# RAW_NAME = 'Mito_74_DUP_s&tCrop_mod.tif'
+# RAW_NAME = 'C2-18-07-04_DC_67xYW(F1)_b7_KltReady.tif'
 
 ''' 2) Tracking options '''
 TIME_CLIP = 5 # must be >=1
@@ -35,13 +36,13 @@ raw = io.imread(ROOT_PATH + RAW_NAME)
 feature_params = dict(
     maxCorners=3000,
     qualityLevel=0.001,
-    minDistance=7,
-    blockSize=7,
+    minDistance=3,
+    blockSize=3,
 	useHarrisDetector=True)
 
 # Parameters for optical flow
 lk_params = dict(
-    winSize = (31,31),
+    winSize = (21,21),
     maxLevel = 3,
     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.01))
 
@@ -57,12 +58,14 @@ img0 = raw[0,:,:]
 f0 = cv2.goodFeaturesToTrack(
     img0, mask=None, **feature_params)
 
-
 # Create empty variables
 nt = raw.shape[0]
 nf = f0.shape[0]
-klt_data = []
-
+track_x = np.zeros((nt, nf))
+track_y = np.zeros((nt, nf))
+track_st = np.zeros((nt, nf))
+track_x[0,:] = np.squeeze(f0[:,:,0])
+track_y[0,:] = np.squeeze(f0[:,:,1])
 
 features = np.zeros_like(raw, dtype='uint16')
 tracks = np.zeros_like(raw, dtype='uint16')
@@ -84,16 +87,17 @@ for i in range(1,nt):
         
         a,b = new.ravel().astype('int')
         c,d = old.ravel().astype('int')
-        tracks[i,:,:] = cv2.line(tracks[i,:,:], (a,b), (c,d), j, 1)
-        features[i,:,:] = cv2.circle(features[i,:,:], (a,b), 1, j, 1)
-        # tracks[i,:,:] = cv2.line(tracks[i,:,:], (a,b), (c,d), (255,255,255), 1)
-        # features[i,:,:] = cv2.circle(features[i,:,:], (a,b), 1, (255,255,255), 1)
+        tracks[i,:,:] = cv2.line(tracks[i,:,:], (a,b), (c,d), j+1, 1)
+        features[i,:,:] = cv2.circle(features[i,:,:], (a,b), 1, j+1, 1)
         
+    # Append tracking data
+    track_x[i,:] = np.squeeze(f1[:,:,0])
+    track_y[i,:] = np.squeeze(f1[:,:,1])
+    track_st[i,:] = np.squeeze(st)
+     
     # Update previous image & features 
     img0 = img1
     f0 = valid_f1.reshape(-1,1,2) 
-
-    klt_data.append((f1.shape[0]))
 
 #%%
 
