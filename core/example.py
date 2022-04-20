@@ -17,6 +17,7 @@ from tools.dtype import as_uint8
 ROOT_PATH = '../data/'
 
 # RAW_NAME = 'Mito_72_s&tCrop.tif'
+# RAW_NAME = 'Mito_72_s&tCrop_mod.tif'
 # RAW_NAME = 'Mito_74_DUP_s&tCrop.tif'
 RAW_NAME = 'C2-18-07-04_DC_67xYW(F1)_b7_KltReady.tif'
 
@@ -32,11 +33,11 @@ raw = io.imread(ROOT_PATH + RAW_NAME)
 
 # Parameters for feature detection
 feature_params = dict(
-    maxCorners=200,
-    qualityLevel=0.1,
+    maxCorners=3000,
+    qualityLevel=0.001,
     minDistance=7,
     blockSize=7,
-	useHarrisDetector=False)
+	useHarrisDetector=True)
 
 # Parameters for optical flow
 lk_params = dict(
@@ -49,19 +50,21 @@ lk_params = dict(
 # Convert raw as uint8
 raw = as_uint8(raw, int_range=0.999)
 
-features = np.zeros_like(raw)
-tracks = np.zeros_like(raw)
+klt_data = []
+features = np.zeros_like(raw, dtype='uint16')
+tracks = np.zeros_like(raw, dtype='uint16')
+
+# Get image & features (t0)
+img0 = raw[0,:,:]
+f0 = cv2.goodFeaturesToTrack(
+    img0, mask=None, **feature_params)
+
 for i in range(1,raw.shape[0]):
     
-    # Get images
-    img0 = raw[i-1,:,:]
+    # Get current image
     img1 = raw[i,:,:]
-
-    # Get features (at t0)
-    f0 = cv2.goodFeaturesToTrack(
-        img0, mask=None, **feature_params)
     
-    # Calculate optical flow (between t0 and t+1)
+    # Calculate optical flow (between t0 and current)
     f1, st, err = cv2.calcOpticalFlowPyrLK(
         img0, img1, f0, None, **lk_params)
     
@@ -69,18 +72,21 @@ for i in range(1,raw.shape[0]):
     valid_f1 = f1[st==1]
     valid_f0 = f0[st==1]
     
-    # Make a features
+    # Make a display
     for j,(new,old) in enumerate(zip(valid_f1,valid_f0)):
         
         a,b = new.ravel().astype('int')
         c,d = old.ravel().astype('int')
-        tracks[i,:,:] = cv2.line(tracks[i,:,:], (a,b), (c,d), (255,255,255), 1)
-        features[i,:,:] = cv2.circle(features[i,:,:], (a,b), 1, (255,255,255), 1)
+        tracks[i,:,:] = cv2.line(tracks[i,:,:], (a,b), (c,d), j, 1)
+        features[i,:,:] = cv2.circle(features[i,:,:], (a,b), 1, j, 1)
+        # tracks[i,:,:] = cv2.line(tracks[i,:,:], (a,b), (c,d), (255,255,255), 1)
+        # features[i,:,:] = cv2.circle(features[i,:,:], (a,b), 1, (255,255,255), 1)
         
+    # Update previous image & features 
+    img0 = img1
+    f0 = valid_f1.reshape(-1,1,2) 
 
-for i in range(1,raw.shape[0]):
-    
-
+    klt_data.append((f1.shape[0]))
 
 #%%
 
