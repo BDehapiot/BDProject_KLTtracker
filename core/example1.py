@@ -17,10 +17,11 @@ from tools.dtype import as_uint8
 ROOT_PATH = '../data/'
 
 # RAW_NAME = 'Mito_72_s&tCrop.tif'
-RAW_NAME = 'Mito_72_s&tCrop_mod.tif'
+# RAW_NAME = 'Mito_72_s&tCrop_mod.tif'
 # RAW_NAME = 'Mito_74_DUP_s&tCrop.tif'
 # RAW_NAME = 'Mito_74_DUP_s&tCrop_mod.tif'
 # RAW_NAME = 'C2-18-07-04_DC_67xYW(F1)_b7_KltReady.tif'
+RAW_NAME = '18-07-11_40x_GBE_UtrCH_Ctrl_b1_Lite_uint8.tif'
 
 ''' 2) Tracking options '''
 TIME_CLIP = 5 # must be >=1
