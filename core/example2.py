@@ -113,6 +113,9 @@ lk_params = dict(
 
 #%%
 
+start = time.time()
+print('get tracks')
+
 # Convert raw as uint8
 raw = as_uint8(raw, int_range=0.999)
 
@@ -150,17 +153,23 @@ for t in range(1,nt):
     img0 = img1
     f0 = f1.reshape(-1,1,2) 
     
+end = time.time()
+print(f'  {(end - start):5.3f} s')     
+    
 #%%    
+
+start = time.time()
+print('get dist')
 
 def get_dist(track_x, track_y):
     
-    coords0 = np.column_stack((
+    coords = np.column_stack((
         np.reshape(track_x, (-1,1), order=('F')), 
         np.reshape(track_y, (-1,1), order=('F'))
         ))
-    
+        
     dist = np.linalg.norm(
-        coords0 - np.roll(coords0, -1, axis=0), 
+        coords - np.roll(coords, -1, axis=0), 
         axis=1
         )
     
@@ -172,25 +181,44 @@ def get_dist(track_x, track_y):
 
 dist = get_dist(track_x, track_y)
 
-# import matplotlib.pyplot as plt
-# plt.hist(dist.ravel(),bins=100, range=(0,10))
-# plt.show()
+end = time.time()
+print(f'  {(end - start):5.3f} s') 
+
+import matplotlib.pyplot as plt
+plt.hist(dist.ravel(),bins=100, range=(0,10))
+plt.show()
 
 #%%
 
+# for f in range(nf):
+    
+#     tmp_dist = dist[:,f]
+ 
+tmp_dist = np.where(dist[:,16] > 5)
+
+    
+    
+
+#%%
+start = time.time()
+print('get display')
 
 features = np.zeros_like(raw, dtype='float32')
 tracks = np.zeros_like(raw, dtype='float32')
 for t in range(1,nt):
     for f in range(nf):
         
+        x0, y0 = int(track_x[t-1,f]), int(track_y[t-1,f])
+        x1, y1 = int(track_x[t,f]), int(track_y[t,f])
+               
         features[t,:,:] = cv2.circle(
-            features[t,:,:], (int(track_x[t,f]),int(track_y[t,f])), 1, dist[t,f], 1)
+            features[t,:,:], (x1,y1), 1, dist[t,f], 1)
         
         tracks[t,:,:] = cv2.line(
-            tracks[t,:,:], (int(track_x[t,f]),int(track_y[t,f])), (int(track_x[t-1,f]),int(track_y[t-1,f])), dist[t,f], 1)
+            tracks[t,:,:], (x1,y1), (x0,y0), dist[t,f], 1)
        
-        
+end = time.time()
+print(f'  {(end - start):5.3f} s')         
 
 #%%
 
