@@ -193,9 +193,10 @@ plt.show()
 # for f in range(nf):
     
 #     tmp_dist = dist[:,f]
- 
-tmp_dist = np.where(dist[:,16] > 5)
 
+
+tmp_dist = dist[:,16]
+tmp_idx = np.where(tmp_dist > 5)
     
     
 
