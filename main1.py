@@ -6,19 +6,18 @@ from pystackreg import StackReg
 from skimage.draw import line
 from skimage.morphology import dilation, square
 
-import time
-
 #%% KLT -----------------------------------------------------------------------
 
 #%% Execute -------------------------------------------------------------------
 
+import time
 import napari
 from skimage import io
 from pathlib import Path
 
 # Get name and open data
-stack_name = '18-07-11_40x_GBE_UtrCH_Ctrl_b1_Lite_uint8.tif'
-# stack_name = '230616_RPE1_cyclg_01_SIM².tif'
+# stack_name = '18-07-11_40x_GBE_UtrCH_Ctrl_b1_Lite_uint8.tif'
+stack_name = '230616_RPE1_cyclg_01_SIM².tif'
 # stack_name = '230616_RPE1_cyclg_02_SIM².tif'
 stack = io.imread(Path('data') / stack_name)
 
@@ -27,7 +26,7 @@ stack = io.imread(Path('data') / stack_name)
 # Feature detection
 feat_params = dict(
     maxCorners=1000,
-    qualityLevel=0.0001,
+    qualityLevel=0.0000001,
     minDistance=5,
     blockSize=5,
 	useHarrisDetector=True
@@ -80,9 +79,11 @@ for t in range(1, stack.shape[0]):
     f1[status == 0] = np.nan
     
     # Measure distances
-    dX = f1[:,0] - f0[:,0]
-    dY = f1[:,1] - f0[:,1]
     dXY = np.linalg.norm(f1 - f0, axis=1) 
+    
+    # valid_idx = ~np.isnan(dXY)
+    # errors = errors[valid_idx]
+    # status = status[valid_idx]
         
     # Append klt_data
     if t == 1:
@@ -154,11 +155,11 @@ for t in range(stack.shape[0]):
             tksRaw[t,rr,cc] = True
 
     # Dilate display arrays
-    dilSize = 3
-    ftsRaw[t,...] = dilation(ftsRaw[t,...], footprint=square(dilSize))
-    ftsLab[t,...] = dilation(ftsLab[t,...], footprint=square(dilSize))
-    ftsdXY[t,...] = dilation(ftsdXY[t,...], footprint=square(dilSize))
-    ftsErr[t,...] = dilation(ftsErr[t,...], footprint=square(dilSize))
+    dilateSize = 3
+    ftsRaw[t,...] = dilation(ftsRaw[t,...], footprint=square(dilateSize))
+    ftsLab[t,...] = dilation(ftsLab[t,...], footprint=square(dilateSize))
+    ftsdXY[t,...] = dilation(ftsdXY[t,...], footprint=square(dilateSize))
+    ftsErr[t,...] = dilation(ftsErr[t,...], footprint=square(dilateSize))
     
 
 end = time.time()
@@ -166,11 +167,25 @@ print(f'  {(end-start):5.3f} s')
 
 # -----------------------------------------------------------------------------   
 
-viewer = napari.Viewer()
-viewer.add_image(stack)
+import matplotlib.pyplot as plt
+
+dXY = np.stack(klt_data['dXY']).ravel()
+dXY = dXY[~np.isnan(dXY)]
+plt.hist(dXY, bins=500, range=(0, 5));
+plt.show()
+
+errors = np.stack(klt_data['errors']).ravel()
+errors = errors[~np.isnan(errors)]
+plt.hist(errors, bins=500, range=(0, 10));
+plt.show()
+
+# -----------------------------------------------------------------------------
+
+# viewer = napari.Viewer()
+# viewer.add_image(stack)
 # viewer.add_image(ftsRaw, blending='additive')
-viewer.add_image(tksRaw, blending='additive')
-viewer.add_labels(ftsLab, blending='additive')
+# viewer.add_image(tksRaw, blending='additive')
+# viewer.add_labels(ftsLab, blending='additive')
 # viewer.add_image(ftsdXY, blending='additive', colormap='turbo')
 # viewer.add_image(ftsErr, blending='additive', colormap='turbo')
 
