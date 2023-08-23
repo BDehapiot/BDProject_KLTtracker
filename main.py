@@ -16,8 +16,6 @@ import napari
 from skimage import io
 from pathlib import Path
 
-from skimage.morphology import binary_dilation, disk
-
 # Get name and open data
 stack_name = '18-07-11_40x_GBE_UtrCH_Ctrl_b1_Lite_uint8.tif'
 stack = io.imread(Path('data') / stack_name)
@@ -27,7 +25,7 @@ stack = io.imread(Path('data') / stack_name)
 # Feature detection
 feat_params = dict(
     maxCorners=300,
-    qualityLevel=0.001,
+    qualityLevel=0.01,
     minDistance=5,
     blockSize=5,
 	useHarrisDetector=True
@@ -81,15 +79,23 @@ for t in range(1, stack.shape[0]):
  
 # ----------------------------------------------------------------------------- 
 
+from skimage.morphology import binary_dilation, dilation, square
+
 features = np.zeros_like(stack, dtype=bool)
-for t in range(0, stack.shape[0]):
-    
+errors = np.zeros_like(stack, dtype=float)
+for t in range(stack.shape[0]):
+
+    #
     xCoords = klt_data[t][0]
     yCoords = klt_data[t][1]
+    Status = klt_data[t][1]
+    errors = klt_data[t][1]
+    
+    # 
     xCoords = xCoords[~np.isnan(xCoords)].astype(int)
     yCoords = yCoords[~np.isnan(yCoords)].astype(int)
     features[t, yCoords, xCoords] = True
-    features[t,...] = binary_dilation(features[t,...], footprint=disk(3))
+    features[t,...] = binary_dilation(features[t,...], footprint=square(5))
 
 # featID = np.zeros_like(stack, dtype='uint16')
 # dist = np.linalg.norm(f1 - f0, axis=1)
