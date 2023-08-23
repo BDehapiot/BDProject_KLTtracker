@@ -17,8 +17,9 @@ from skimage import io
 from pathlib import Path
 
 # Get name and open data
-# stack_name = '18-07-11_40x_GBE_UtrCH_Ctrl_b1_Lite_uint8.tif'
-stack_name = '230616_RPE1_cyclg_01_SIM².tif'
+stack_name = '18-07-11_40x_GBE_UtrCH_Ctrl_b1_Lite_uint8.tif'
+# stack_name = '230616_RPE1_cyclg_01_SIM².tif'
+# stack_name = '230616_RPE1_cyclg_02_SIM².tif'
 stack = io.imread(Path('data') / stack_name)
 
 # -----------------------------------------------------------------------------
@@ -36,7 +37,7 @@ feat_params = dict(
 flow_params = dict(
     winSize=(11, 11),
     maxLevel=3,
-    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.01)
+    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 5, 0.01)
     )
 
 # -----------------------------------------------------------------------------
