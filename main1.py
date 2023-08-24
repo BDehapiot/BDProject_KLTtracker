@@ -161,30 +161,37 @@ for t in range(stack.shape[0]):
     ftsdXY[t,...] = dilation(ftsdXY[t,...], footprint=square(dilateSize))
     ftsErr[t,...] = dilation(ftsErr[t,...], footprint=square(dilateSize))
     
-
 end = time.time()
 print(f'  {(end-start):5.3f} s')
 
-# -----------------------------------------------------------------------------   
+# -----------------------------------------------------------------------------
 
-import matplotlib.pyplot as plt
-
-dXY = np.stack(klt_data['dXY']).ravel()
-dXY = dXY[~np.isnan(dXY)]
-plt.hist(dXY, bins=500, range=(0, 5));
-plt.show()
-
-errors = np.stack(klt_data['errors']).ravel()
-errors = errors[~np.isnan(errors)]
-plt.hist(errors, bins=500, range=(0, 10));
-plt.show()
+timeClp = 5
+tksClp = tksRaw.astype('uint8')*255
+for t in range(1, stack.shape[0]):
+    tksClp[t,...] += tksClp[t-1,...] // 2 
 
 # -----------------------------------------------------------------------------
 
-# viewer = napari.Viewer()
-# viewer.add_image(stack)
-# viewer.add_image(ftsRaw, blending='additive')
+# import matplotlib.pyplot as plt
+
+# dXY = np.stack(klt_data['dXY']).ravel()
+# dXY = dXY[~np.isnan(dXY)]
+# plt.hist(dXY, bins=500, range=(0, 5));
+# plt.show()
+
+# errors = np.stack(klt_data['errors']).ravel()
+# errors = errors[~np.isnan(errors)]
+# plt.hist(errors, bins=500, range=(0, 10));
+# plt.show()
+
+# -----------------------------------------------------------------------------   
+
+viewer = napari.Viewer()
+viewer.add_image(stack)
+viewer.add_image(ftsRaw, blending='additive')
 # viewer.add_image(tksRaw, blending='additive')
+viewer.add_image(tksClp, blending='additive')
 # viewer.add_labels(ftsLab, blending='additive')
 # viewer.add_image(ftsdXY, blending='additive', colormap='turbo')
 # viewer.add_image(ftsErr, blending='additive', colormap='turbo')
